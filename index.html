@@ -19,7 +19,9 @@
         .stats { text-align: center; margin: 20px 0; }
         .stat { display: inline-block; margin: 0 20px; font-size: 1.2em; }
         .run-btn { font-size: 1.1em; }
-        #keyword { padding: 10px; width: 300px; margin-right: 10px; border-radius: 5px; border: 1px solid #ddd; font-size: 16px; }
+        #keyword, #start_date, #end_date { padding: 10px; margin-right: 10px; border-radius: 5px; border: 1px solid #ddd; font-size: 16px; }
+        .input-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+        label { font-weight: bold; margin-right: 5px; }
     </style>
 </head>
 <body>
@@ -30,10 +32,19 @@
         <div class="stat" id="instagram">Instagram: 0</div>
         <div class="stat" id="youtube">YouTube: 0</div>
     </div>
-    <input type="text" id="keyword" placeholder="Masukkan keyword (contoh: news, crypto, python)" value="">
-    <button class="run-btn" onclick="runCrawler()">🚀 Crawl Keyword</button>
-    <button onclick="clearData()">🗑️ Clear Data</button>
-    <div id="log">Ready - masukkan keyword lalu klik Crawl!</div>
+    
+    <div class="input-row">
+        <label>Keyword:</label>
+        <input type="text" id="keyword" placeholder="news, crypto, jokowi" value="">
+        <label>Start Date:</label>
+        <input type="date" id="start_date">
+        <label>End Date:</label>
+        <input type="date" id="end_date">
+        <button class="run-btn" onclick="runCrawler()">🚀 Crawl</button>
+        <button onclick="clearData()">🗑️ Clear Data</button>
+    </div>
+    
+    <div id="log">Ready - isi keyword + dates (optional) lalu Crawl!</div>
     <div class="results" id="results"></div>
 
     <script>
@@ -77,19 +88,22 @@
 
         async function runCrawler() {
             const log = document.getElementById('log');
-            const keywordInput = document.getElementById('keyword');
-            const keyword = keywordInput.value.trim() || 'python';
-            keywordInput.value = keyword;
+            const keyword = document.getElementById('keyword').value.trim() || 'python';
+            const start_date = document.getElementById('start_date').value;
+            const end_date = document.getElementById('end_date').value;
             
-            log.textContent = `Running crawler with keyword: "${keyword}"...\n`;
+            log.textContent = `Running crawler: "${keyword}" ${start_date ? `(${start_date} to ${end_date || 'now'})` : ''}...\n`;
             
             try {
+                const formData = new URLSearchParams();
+                formData.append('keyword', keyword);
+                if (start_date) formData.append('start_date', start_date);
+                if (end_date) formData.append('end_date', end_date);
+                
                 const res = await fetch('/run', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: new URLSearchParams({keyword: keyword})
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: formData
                 });
                 const output = await res.text();
                 log.textContent += output + '\n';

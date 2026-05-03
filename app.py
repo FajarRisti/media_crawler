@@ -4,6 +4,7 @@ import os
 import subprocess
 import threading
 import time
+import argparse  # for main.py compatibility
 
 app = Flask(__name__, static_folder='.', static_url_path='')
 
@@ -20,13 +21,23 @@ def data():
 
 @app.route('/run', methods=['POST'])
 def run_crawler():
-    keyword = request.form.get('keyword', request.args.get('keyword', 'python'))
+    keyword = request.form.get('keyword', 'python')
+    start_date = request.form.get('start_date', '')
+    end_date = request.form.get('end_date', '')
+    
+    cmd = ['python', 'main.py', keyword]
+    if start_date:
+        cmd += ['--start-date', start_date]
+    if end_date:
+        cmd += ['--end-date', end_date]
+    
     def run():
-        subprocess.run(['python', 'main.py', keyword], capture_output=True, text=True)
+        subprocess.run(cmd, capture_output=True, text=True)
     
     thread = threading.Thread(target=run)
     thread.start()
-    return f'Crawler started with keyword: {keyword}'
+    params = f'"{keyword}" {start_date or "no"} {end_date or "no"}'
+    return f'Crawler started: {params}'
 
 @app.route('/clear', methods=['POST'])
 def clear():
@@ -36,4 +47,3 @@ def clear():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
-

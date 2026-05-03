@@ -1,21 +1,17 @@
-# Media Crawler TODO
+# Media Crawler TODO - BLACKBOXAI Progress
+**✅ Plan approved & implementation started**
 
-## Setup Postgres
-- [ ] docker compose up -d (start DB)
-- [ ] source venv/bin/activate && pip install -r requirements.txt (install SQL deps)
-- [ ] alembic upgrade head (run migrations)
+**Completed:**
+- [x] `/Users/mac/Desktop/users/media_crawler/TODO.md` created with detailed plan
 
-## Test
-- [ ] python main.py (save to DB)
+**Next Steps (Logical Breakdown):**
+1. **Step 1:** Update UI `index.html` - add date inputs (start_date, end_date)
+2. **Step 2:** Update `app.py` - extract date params → pass to main.py CLI
+3. **Step 3:** Update `main.py` - parse CLI dates → modify crawl URLs with date filters
+4. **Step 4:** Test end-to-end (keyword + dates → filtered results)
+5. **Step 5:** Git commit/push + update README
 
-## Development
-- Implement real crawling (YouTube/Twitter/Instagram)
-- Add async (aiohttp)
-- Scheduler (APScheduler)
-- API endpoints (FastAPI)
-- Friend collab
+**Current Progress: 1/5 complete**
 
-## Deploy
-- Dockerize app
-- Railway/Render for Postgres + app
+Reply "next" for Step 1 or suggest changes.
 

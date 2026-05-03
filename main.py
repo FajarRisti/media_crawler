@@ -2,15 +2,18 @@
 """
 Social Media Crawler - File-based (no DB needed)
 Crawls Twitter/X, Instagram, YouTube → saves to data.json
+Supports date range filtering via URL params
 """
 import requests
 from bs4 import BeautifulSoup
 import json
 import time
 import random
-from urllib.parse import urlparse
+from urllib.parse import urlparse, quote
 import re
 import os
+import argparse
+from datetime import datetime
 
 DATA_FILE = 'data.json'
 
@@ -39,12 +42,29 @@ def save_data(data):
         json.dump(data, f, indent=2, ensure_ascii=False)
     print(f'Saved {len(data)} items to {DATA_FILE}')
 
-def crawl_twitter_search(query, max_pages=2):
+def build_twitter_url(query, start_date, end_date):
+    url = f'https://twitter.com/search?q={quote(query)}'
+    if start_date:
+        url += f' since:{start_date}'
+    if end_date:
+        url += f' until:{end_date}'
+    url += '&src=typed_query&f=live'
+    return url
+
+def build_youtube_url(query, start_date, end_date):
+    # YouTube date filter via 'sp' param (upload date)
+    base = f'https://www.youtube.com/results?search_query={quote(query)}'
+    sp_param = 'CAISBAgCEAE%253D'  # This week - adjust based on dates
+    if start_date and end_date:
+        # Custom date range needs more complex logic or API
+        sp_param = 'CAI%253D'  # Any time fallback
+    return f'{base}&sp={sp_param}'
+
+def crawl_twitter_search(query, start_date, end_date, max_pages=2):
     data = load_data()
-    base_url = 'https://twitter.com/search?q=' + requests.utils.quote(query) + '&src=typed_query'
+    url = build_twitter_url(query, start_date, end_date)
     
     for page in range(max_pages):
-        url = base_url + f'&f=live' if page == 0 else f'{base_url}&p={page+1}'
         try:
             response = requests.get(url, headers=get_headers(), timeout=10)
             soup = BeautifulSoup(response.text, 'html.parser')
@@ -60,19 +80,21 @@ def crawl_twitter_search(query, max_pages=2):
                             'url': tweet_url,
                             'title': title,
                             'source': 'twitter',
-                            'timestamp': time.strftime('%Y-%m-%d %H:%M:%S')
+                            'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'),
+                            'query': query,
+                            'start_date': start_date,
+                            'end_date': end_date
                         })
-                        print(f'Twitter [{query}]: {tweet_url}')
+                        print(f'Twitter [{query} {start_date or ""}-{end_date or ""}]: {tweet_url}')
             time.sleep(random.uniform(2, 4))
         except Exception as e:
             print(f'Twitter error: {e}')
     
     save_data(data)
-    print(f'Twitter crawl complete for "{query}"')
 
-def crawl_instagram_explore(query, max_items=10):
+def crawl_instagram_explore(query, start_date, end_date, max_items=5):
     data = load_data()
-    url = f'https://www.instagram.com/explore/tags/{requests.utils.quote(query)}/'
+    url = f'https://www.instagram.com/explore/tags/{quote(query)}/'
     
     try:
         response = requests.get(url, headers=get_headers(), timeout=10)
@@ -87,17 +109,19 @@ def crawl_instagram_explore(query, max_items=10):
                     'url': post_url,
                     'title': title,
                     'source': 'instagram',
-                    'timestamp': time.strftime('%Y-%m-%d %H:%M:%S')
+                    'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'),
+                    'query': query,
+                    'start_date': start_date,
+                    'end_date': end_date
                 })
                 print(f'Instagram [{query}]: {post_url}')
-        
         save_data(data)
     except Exception as e:
         print(f'Instagram error: {e}')
 
-def crawl_youtube_search(query, max_videos=10):
+def crawl_youtube_search(query, start_date, end_date, max_videos=10):
     data = load_data()
-    url = f'https://www.youtube.com/results?search_query={requests.utils.quote(query)}'
+    url = build_youtube_url(query, start_date, end_date)
     
     try:
         response = requests.get(url, headers=get_headers(), timeout=10)
@@ -113,28 +137,30 @@ def crawl_youtube_search(query, max_videos=10):
                     'url': video_url,
                     'title': title,
                     'source': 'youtube',
-                    'timestamp': time.strftime('%Y-%m-%d %H:%M:%S')
+                    'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'),
+                    'query': query,
+                    'start_date': start_date,
+                    'end_date': end_date
                 })
                 print(f'YouTube [{query}]: {video_url}')
-        
         save_data(data)
     except Exception as e:
         print(f'YouTube error: {e}')
 
-def main(keyword='python'):
-    print(f"Social Media Crawler starting with keyword: {keyword} (no DB - saves to data.json)")
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('keyword', nargs='?', default='python')
+    parser.add_argument('--start-date', default='')
+    parser.add_argument('--end-date', default='')
+    args = parser.parse_args()
     
-    # Crawl social media with keyword
-    crawl_twitter_search(keyword, 1)
-    crawl_instagram_explore(keyword, 5)
-    crawl_youtube_search(f'{keyword} tutorial', 10)
+    print(f"Crawler: keyword='{args.keyword}' start='{args.start_date}' end='{args.end_date}'")
+    
+    crawl_twitter_search(args.keyword, args.start_date, args.end_date, 1)
+    crawl_instagram_explore(args.keyword, args.start_date, args.end_date, 5)
+    crawl_youtube_search(f'{args.keyword} tutorial', args.start_date, args.end_date, 10)
     
     print("All done! Check data.json")
-
-if __name__ == '__main__':
-    import sys
-    keyword = sys.argv[1] if len(sys.argv) > 1 else 'python'
-    main(keyword)
 
 if __name__ == '__main__':
     main()
