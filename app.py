@@ -20,7 +20,7 @@ def data():
 
 @app.route('/run', methods=['POST'])
 def run_crawler():
-    keyword = request.json.get('keyword', 'python') if request.is_json else request.args.get('keyword', 'python')
+    keyword = request.form.get('keyword', request.args.get('keyword', 'python'))
     def run():
         subprocess.run(['python', 'main.py', keyword], capture_output=True, text=True)
     

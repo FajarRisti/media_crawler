@@ -79,14 +79,17 @@
             const log = document.getElementById('log');
             const keywordInput = document.getElementById('keyword');
             const keyword = keywordInput.value.trim() || 'python';
-            keywordInput.value = keyword; // show used keyword
+            keywordInput.value = keyword;
             
             log.textContent = `Running crawler with keyword: "${keyword}"...\n`;
             
             try {
-                const res = await fetch(`/run?keyword=${encodeURIComponent(keyword)}`, { 
+                const res = await fetch('/run', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'}
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({keyword: keyword})
                 });
                 const output = await res.text();
                 log.textContent += output + '\n';
