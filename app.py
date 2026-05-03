@@ -25,7 +25,7 @@ def run_crawler():
     start_date = request.form.get('start_date', '')
     end_date = request.form.get('end_date', '')
     
-    cmd = ['python', 'main.py', keyword]
+    cmd = ['python', 'main_fast.py', keyword]
     if start_date:
         cmd += ['--start-date', start_date]
     if end_date:
