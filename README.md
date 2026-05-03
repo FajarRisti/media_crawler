@@ -10,7 +10,15 @@ Media content crawler/scraper project.
 1. Start DB: `docker compose up -d`
 2. Install new deps: `source venv/bin/activate && pip install -r requirements.txt`
 3. Run migrations: `alembic upgrade head`
-4. Run crawler: `python main.py`
+python main.py
+
+**Web UI:**
+pip install flask
+python app.py
+open http://localhost:5000
+- Run crawler from UI
+- View results live
+- Clear data
 
 Note: Edit alembic.ini sqlalchemy.url to match your .env
 
