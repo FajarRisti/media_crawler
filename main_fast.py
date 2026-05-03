@@ -88,7 +88,8 @@ async def crawl_ig_fake(query):  # IG no RSS, fallback fast scrape
         html = await fetch_url(session, url)
         if html:
             # Simple title extraction
-            titles = re.findall(r'alt="(.*?)"', html)[:5]
+            import re
+            titles = re.findall(r'alt=\\"([^\\"]*)\\"', html)[:5]
             for title in titles:
                 data.append({
                     'url': f'https://instagram.com/explore/tags/{quote(query)}/',
