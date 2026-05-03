@@ -6,8 +6,13 @@ Media content crawler/scraper project.
 1. `cd /Users/mac/Desktop/users/media_crawler`
 2. `pip install -r requirements.txt` (create venv first: `python -m venv venv && source venv/bin/activate`)
 
-## Run
-`python main.py`
+## Run with Postgres
+1. Start DB: `docker compose up -d`
+2. Install new deps: `source venv/bin/activate && pip install -r requirements.txt`
+3. Run migrations: `alembic upgrade head`
+4. Run crawler: `python main.py`
+
+Note: Edit alembic.ini sqlalchemy.url to match your .env
 
 ## Collaboration
 1. Create GitHub repo: https://github.com/new - name 'media-crawler' (public/private)
