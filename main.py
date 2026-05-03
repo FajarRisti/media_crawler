@@ -121,15 +121,20 @@ def crawl_youtube_search(query, max_videos=10):
     except Exception as e:
         print(f'YouTube error: {e}')
 
-def main():
-    print("Social Media Crawler starting... (no DB - saves to data.json)")
+def main(keyword='python'):
+    print(f"Social Media Crawler starting with keyword: {keyword} (no DB - saves to data.json)")
     
-    # Crawl social media
-    crawl_twitter_search('python programming', 1)
-    crawl_instagram_explore('coding', 5)
-    crawl_youtube_search('python tutorial', 10)
+    # Crawl social media with keyword
+    crawl_twitter_search(keyword, 1)
+    crawl_instagram_explore(keyword, 5)
+    crawl_youtube_search(f'{keyword} tutorial', 10)
     
     print("All done! Check data.json")
+
+if __name__ == '__main__':
+    import sys
+    keyword = sys.argv[1] if len(sys.argv) > 1 else 'python'
+    main(keyword)
 
 if __name__ == '__main__':
     main()

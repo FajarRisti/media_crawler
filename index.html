@@ -19,6 +19,7 @@
         .stats { text-align: center; margin: 20px 0; }
         .stat { display: inline-block; margin: 0 20px; font-size: 1.2em; }
         .run-btn { font-size: 1.1em; }
+        #keyword { padding: 10px; width: 300px; margin-right: 10px; border-radius: 5px; border: 1px solid #ddd; font-size: 16px; }
     </style>
 </head>
 <body>
@@ -29,9 +30,10 @@
         <div class="stat" id="instagram">Instagram: 0</div>
         <div class="stat" id="youtube">YouTube: 0</div>
     </div>
-    <button class="run-btn" onclick="runCrawler()">🚀 Run Crawler</button>
+    <input type="text" id="keyword" placeholder="Masukkan keyword (contoh: news, crypto, python)" value="">
+    <button class="run-btn" onclick="runCrawler()">🚀 Crawl Keyword</button>
     <button onclick="clearData()">🗑️ Clear Data</button>
-    <div id="log">Ready...</div>
+    <div id="log">Ready - masukkan keyword lalu klik Crawl!</div>
     <div class="results" id="results"></div>
 
     <script>
@@ -64,7 +66,7 @@
             instagram.textContent = `Instagram: ${counts.instagram || 0}`;
             youtube.textContent = `YouTube: ${counts.youtube || 0}`;
 
-            results.innerHTML = data.map(item => `
+            results.innerHTML = data.slice(-20).map(item => `
                 <div class="card">
                     <h3>${item.source.toUpperCase()}</h3>
                     <div class="url"><a href="${item.url}" target="_blank">${item.title.substring(0, 100)}...</a></div>
@@ -75,15 +77,22 @@
 
         async function runCrawler() {
             const log = document.getElementById('log');
-            log.textContent = 'Running crawler...\n';
+            const keywordInput = document.getElementById('keyword');
+            const keyword = keywordInput.value.trim() || 'python';
+            keywordInput.value = keyword; // show used keyword
+            
+            log.textContent = `Running crawler with keyword: "${keyword}"...\n`;
             
             try {
-                const res = await fetch('/run', { method: 'POST' });
+                const res = await fetch(`/run?keyword=${encodeURIComponent(keyword)}`, { 
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'}
+                });
                 const output = await res.text();
-                log.textContent += output;
+                log.textContent += output + '\n';
                 loadData();
             } catch (e) {
-                log.textContent += 'Error: ' + e.message;
+                log.textContent += 'Error: ' + e.message + '\n';
             }
         }
 
@@ -91,14 +100,19 @@
             if (confirm('Clear all data?')) {
                 data = [];
                 updateDisplay();
+                document.getElementById('log').textContent = 'Data cleared!\n';
                 fetch('/clear', { method: 'POST' });
             }
         }
 
+        // Enter to crawl
+        document.getElementById('keyword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') runCrawler();
+        });
+
         // Auto load
         loadData();
-        setInterval(loadData, 5000);
+        setInterval(loadData, 3000);
     </script>
 </body>
 </html>
-
